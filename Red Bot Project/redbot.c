@@ -26,3 +26,28 @@ uint16_t READ_LINE_SENSOR(int line_channel){
 	LINE_SENSOR_OUT_RAW = (ADCH << 8) | ADCL;
 	return(LINE_SENSOR_OUT_RAW);
 }
+
+void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
+	
+	// DO THE MATH FOR SPEED AND SET THIS
+	TCCR0B |= (1 << CS01) | (1 << CS00);
+	
+	switch (channel)
+	{
+		case MOTOR_LEFT_PWM:
+			DDRD |= (1 << DDD5);			// Set PIND5 as Output
+			OCR0A = pwm_time_period;		// Set Compare register for desired frequency
+			TCCR0A |= (1 << COM0B0;)		// Toggle OC0B (PIND5) on Compare Match
+			break;
+		case MOTOR_RIGHT_PWM:
+			DDRD |= (1 << DDD6);			// Set PIND6 as Output
+			OCR0A = pwm_time_period;		// Set Compare registers for desired frequency
+			TCCR0A |= (1 << COM0A0);		// Toggle OC0A (PIND6) on Compare Match
+			break;
+		default:
+			break;	
+	}
+	
+}
+
+

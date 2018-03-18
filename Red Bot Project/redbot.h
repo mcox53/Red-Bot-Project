@@ -11,16 +11,16 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-//Line Center IN			ADC6
-//Line Left IN				ADC0
-//Line Right IN				ADC1
+
 //Accel SDA					PINC4
 //Accel SCL					PINC5
 
 #define MOTOR_LEFT_CONTROL1		PIND2
 #define MOTOR_LEFT_CONTROL2		PIND4
+#define MOTOR_LEFT_PWM			PIND5
 #define MOTOR_RIGHT_CONTROL1	PIND7
 #define MOTOR_RIGHT_CONTROL2	PINB0
+#define MOTOR_RIGHT_PWM			
 #define WHEELSPEED_RIGHT		PINC2
 #define WHEELSPEED_LEFT			PINC3
 
@@ -33,26 +33,27 @@
 // function will change timer compare match registers?
 void CHANGE_MOTOR_SPEED(void);
 
-// function will read IR sensor?
-// Should there be a function for all 3 or just check each one at once?
-uint16_t READ_LINE_SENSOR(int line_channel);
-
+// function will read IR sensor depending on channel argument
+uint16_t READ_LINE_SENSOR(uint8_t line_channel);
 
 // Below are low level motor control function definitions
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
 
+// Primitive function to set PWM output for a specific channel
+void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel);
+
 //Set the left motor to move forward at a specific speed
-void LEFT_MOTOR_FWD(int speed);
+void LEFT_MOTOR_FWD(uint16_t speed);
 
 //Set the right motor to move forward at a specific speed
-void RIGHT_MOTOR_FWD(int speed);
+void RIGHT_MOTOR_FWD(uint16_t speed);
 
 //Set the left motor to move in reverse at a specific speed
-void LEFT_MOTOR_REV(int speed);
+void LEFT_MOTOR_REV(uint16_t speed);
 
 //Set the right motor to move in reverse at a specific speed
-void RIGHT_MOTOR_REV(int speed);
+void RIGHT_MOTOR_REV(uint16_t speed);
 
 //Set the left motor to brake (not a stop)
 void LEFT_MOTOR_BRAKE(void);

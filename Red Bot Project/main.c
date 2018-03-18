@@ -32,10 +32,13 @@ void initialize_all(void){
 	
 	// ADC INITS FOR PRESCALER/ENABLE ONLY
 	// CONVERSION HANDLED ELSEWHERE
-	ADCSRA |= (1<< ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
+	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
 	ADCSRA |= (1 << ADEN);									// Enable ADC
 	
+	// Timer 0 Inits to control motor speed
+	TCCR0A |= (1 << WGM01);									// CTC Mode
 }
+
 
 
 int main(void)
