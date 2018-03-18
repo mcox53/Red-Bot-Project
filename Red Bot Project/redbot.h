@@ -21,8 +21,12 @@
 #define MOTOR_LEFT_CONTROL2		PIND4
 #define MOTOR_RIGHT_CONTROL1	PIND7
 #define MOTOR_RIGHT_CONTROL2	PINB0
-#define WHEELSPEED_RIGHT
-#define WHEELSPEED_LEFT
+#define WHEELSPEED_RIGHT		PINC2
+#define WHEELSPEED_LEFT			PINC3
+
+#define LINE_CENTER_IN			6
+#define LINE_LEFT_IN			0
+#define LINE_RIGHT_IN			1
 
 
 // The two functions below are a work in Progress
@@ -31,7 +35,7 @@ void CHANGE_MOTOR_SPEED(void);
 
 // function will read IR sensor?
 // Should there be a function for all 3 or just check each one at once?
-uint8_t READ_LINE_SENSOR(void);
+uint16_t READ_LINE_SENSOR(int line_channel);
 
 
 // Below are low level motor control function definitions
