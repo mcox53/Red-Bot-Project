@@ -16,7 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "uart.h"
+#include "redbot.h"
 
+// UART stream for testing
 FILE uart_stream = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
 char UART_BUFFER[50];
 

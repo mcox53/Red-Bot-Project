@@ -25,6 +25,15 @@
 #define WHEELSPEED_LEFT
 
 
+// The two functions below are a work in Progress
+// function will change timer compare match registers?
+void CHANGE_MOTOR_SPEED(void);
+
+// function will read IR sensor?
+// Should there be a function for all 3 or just check each one at once?
+uint8_t READ_LINE_SENSOR(void);
+
+
 // Below are low level motor control function definitions
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
@@ -41,11 +50,17 @@ void LEFT_MOTOR_REV(int speed);
 //Set the right motor to move in reverse at a specific speed
 void RIGHT_MOTOR_REV(int speed);
 
-//Set the left motor to stop
+//Set the left motor to brake (not a stop)
 void LEFT_MOTOR_BRAKE(void);
 
-//Set the right motor to brake
+//Set the right motor to brake (not a stop)
 void RIGHT_MOTOR_BRAKE(void);
+
+//Set the left motor to stop
+void LEFT_MOTOR_STOP(void);
+
+//Set the right motor to stop
+void  RIGHT_MOTOR_STOP(void);
 
 
 
