@@ -24,3 +24,28 @@
 #define WHEELSPEED_RIGHT
 #define WHEELSPEED_LEFT
 
+
+// Below are low level motor control function definitions
+// These define the basic movements of the motors
+// We will use these basic functions to build more complex movements
+
+//Set the left motor to move forward at a specific speed
+void LEFT_MOTOR_FWD(int speed);
+
+//Set the right motor to move forward at a specific speed
+void RIGHT_MOTOR_FWD(int speed);
+
+//Set the left motor to move in reverse at a specific speed
+void LEFT_MOTOR_REV(int speed);
+
+//Set the right motor to move in reverse at a specific speed
+void RIGHT_MOTOR_REV(int speed);
+
+//Set the left motor to stop
+void LEFT_MOTOR_BRAKE(void);
+
+//Set the right motor to brake
+void RIGHT_MOTOR_BRAKE(void);
+
+
+
