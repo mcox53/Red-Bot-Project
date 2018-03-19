@@ -20,7 +20,7 @@
 #define MOTOR_LEFT_PWM			PIND5
 #define MOTOR_RIGHT_CONTROL1	PIND7
 #define MOTOR_RIGHT_CONTROL2	PINB0
-#define MOTOR_RIGHT_PWM			
+#define MOTOR_RIGHT_PWM			PIND6
 #define WHEELSPEED_RIGHT		PINC2
 #define WHEELSPEED_LEFT			PINC3
 
@@ -28,10 +28,6 @@
 #define LINE_LEFT_IN			0
 #define LINE_RIGHT_IN			1
 
-
-// The two functions below are a work in Progress
-// function will change timer compare match registers?
-void CHANGE_MOTOR_SPEED(void);
 
 // function will read IR sensor depending on channel argument
 uint16_t READ_LINE_SENSOR(uint8_t line_channel);
@@ -43,17 +39,17 @@ uint16_t READ_LINE_SENSOR(uint8_t line_channel);
 // Primitive function to set PWM output (speed) for a specific channel
 void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel);
 
-//Set the left motor to move forward at a specific speed
-void LEFT_MOTOR_FWD(uint16_t speed);
+//Set the left motor to move forward. Speed is set separately
+void LEFT_MOTOR_FWD(void);
 
-//Set the right motor to move forward at a specific speed
-void RIGHT_MOTOR_FWD(uint16_t speed);
+//Set the right motor to move forward. Speed is set separately
+void RIGHT_MOTOR_FWD(void);
 
-//Set the left motor to move in reverse at a specific speed
-void LEFT_MOTOR_REV(uint16_t speed);
+//Set the left motor to move in reverse. Speed is set separately
+void LEFT_MOTOR_REV(void);
 
-//Set the right motor to move in reverse at a specific speed
-void RIGHT_MOTOR_REV(uint16_t speed);
+//Set the right motor to move in reverse. Speed is set separately
+void RIGHT_MOTOR_REV(void);
 
 //Set the left motor to brake (not a stop)
 void LEFT_MOTOR_BRAKE(void);

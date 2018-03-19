@@ -52,6 +52,26 @@ void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
 	
 }
 
+void RIGHT_MOTOR_FWD(void){
+	PORTD |= (1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
+	PORTB &= ~(1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
+}
+
+void LEFT_MOTOR_FWD(void){
+	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
+	PORTD &= ~(1 << MOTOR_LEFT_CONTROL2);			// Set IN2 To Low according to motor driver datasheet
+}
+
+void RIGHT_MOTOR_REV(void){
+	PORTD &= ~(1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
+	PORTB |= (1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
+}
+
+void LEFT_MOTOR_REV(void){
+	PORTD &= ~(1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
+	PORTB |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
+}
+
 void RIGHT_MOTOR_STOP(void){
 	PORTD &= ~(1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
 	PORTB &= ~(1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
@@ -74,8 +94,8 @@ void RIGHT_MOTOR_BRAKE(void){
 }
 
 void LEFT_MOTOR_BRAKE(void){
-	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to high according to motor driver datasheet
-	PORTD |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to high according to motor driver datasheet
+	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
+	PORTD |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
 	TCCR0A &= ~(1 << COM0B1) | ~(1 << COM0B0);		// Disables PWM output for timer and enables normal port operation
 	PORTD |= (1 << PIND5);							// Set PWM output pin to be high. PWM out is a don't care state for short brake
 }
