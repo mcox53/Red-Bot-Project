@@ -29,8 +29,14 @@
 #define LINE_RIGHT_IN			1
 
 
-// function will read IR sensor depending on channel argument
+// Function will read IR sensor depending on channel argument
 uint16_t READ_LINE_SENSOR(uint8_t line_channel);
+
+// Function will read all three line sensors and choose a background level
+uint16_t SET_IR_BACKGROUND_LEVEL(void);
+
+// Function will read the center line sensor and set a detection level for the tape
+uint16_t SET_IR_DETECT_LEVEL(void);
 
 // Below are low level motor control function definitions
 // These define the basic movements of the motors
