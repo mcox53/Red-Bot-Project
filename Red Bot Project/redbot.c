@@ -29,6 +29,8 @@ uint16_t READ_LINE_SENSOR(int line_channel){
 
 void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
 	
+	TCCR0A |= (1 << WGM01);					// CTC Mode
+	
 	// DO THE MATH FOR SPEED AND SET THIS
 	TCCR0B |= (1 << CS01) | (1 << CS00);
 	
@@ -48,6 +50,34 @@ void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
 			break;	
 	}
 	
+}
+
+void RIGHT_MOTOR_STOP(void){
+	PORTD &= ~(1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
+	PORTB &= ~(1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
+	TCCR0A &= ~(1 << COM0A1) | ~(1 << COM0A0);		// Disables PWM output for timer and enables normal port operation
+	PORTD |= (1 << PIND6);							// PWM Out required to be High for Motor stop
+}
+
+void LEFT_MOTOR_STOP(void){
+	PORTD &= ~(1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
+	PORTD &= ~(1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
+	TCCR0A &= ~(1 << COM0B1) | ~(1 << COM0B0);		// Disables PWM output for timer and enables normal port operation
+	PORTD |= (1 << PIND6);							// PWM Out required to be High for Motor stops
+}
+
+void RIGHT_MOTOR_BRAKE(void){
+	PORTD |= (1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
+	PORTB |= (1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to High according to motor driver data sheet
+	TCCR0A &= ~(1 << COM0A1) | ~(1 << COM0A0);		// Disables PWM output for timer and enables normal port operation
+	PORTD |= (1 << PIND6);							// Set PWM output pin to be high. PWM out is a don't care state for short brake
+}
+
+void LEFT_MOTOR_BRAKE(void){
+	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to high according to motor driver datasheet
+	PORTD |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to high according to motor driver datasheet
+	TCCR0A &= ~(1 << COM0B1) | ~(1 << COM0B0);		// Disables PWM output for timer and enables normal port operation
+	PORTD |= (1 << PIND5);							// Set PWM output pin to be high. PWM out is a don't care state for short brake
 }
 
 

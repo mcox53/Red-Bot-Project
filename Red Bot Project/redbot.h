@@ -40,7 +40,7 @@ uint16_t READ_LINE_SENSOR(uint8_t line_channel);
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
 
-// Primitive function to set PWM output for a specific channel
+// Primitive function to set PWM output (speed) for a specific channel
 void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel);
 
 //Set the left motor to move forward at a specific speed
