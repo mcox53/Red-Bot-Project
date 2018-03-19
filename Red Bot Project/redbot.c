@@ -27,6 +27,19 @@ uint16_t READ_LINE_SENSOR(uint8_t line_channel){
 	return(LINE_SENSOR_OUT_RAW);
 }
 
+uint16_t SET_IR_DETECT_LEVEL(void){
+	uint16_t CENTER_IR_LEVEL = READ_LINE_SENSOR(LINE_CENTER_IN);
+	return(CENTER_IR_LEVEL);
+}
+
+uint16_t SET_IR_BACKGROUND_LEVEL(void){
+	uint16_t LEFT_IR_LEVEL = READ_LINE_SENSOR(LINE_LEFT_IN);
+	uint16_t RIGHT_IR_LEVEL = READ_LINE_SENSOR(LINE_RIGHT_IN);
+	
+	uint16_t average = (LEFT_IR_LEVEL + RIGHT_IR_LEVEL) / 2;
+	return(average);
+}
+
 void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
 	
 	TCCR0A |= (1 << WGM01);					// CTC Mode

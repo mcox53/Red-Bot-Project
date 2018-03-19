@@ -18,6 +18,9 @@
 #include "uart.h"
 #include "redbot.h"
 
+volatile uint8_t fifty_ms_delay_count;
+uint16_t timer_period = 6249;						// Timer Period for 50ms timer
+
 // UART stream for testing
 FILE uart_stream = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
 char UART_BUFFER[50];
@@ -35,9 +38,16 @@ void initialize_all(void){
 	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
 	ADCSRA |= (1 << ADEN);									// Enable ADC
 	
-	
+	// Program timer counter that counts every 50ms
+	OCR1A = timer_period;
+	TCCR1B |= (1 << CS11) | (1 << CS10);					// 64 prescaler
+	TCCR1B |= (1 << WGM12);									// CTC Mode
+	TIMSK1 |= (1 << OCIE1A);								// Timer Match A Interrupt
 }
 
+ISR(TIMER1_COMPA_vect){
+	fifty_ms_delay_count++;
+}
 
 
 int main(void)
