@@ -35,7 +35,7 @@ void initialize_all(void){
 	// CONVERSION HANDLED ELSEWHERE
 	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
 	ADCSRA |= (1 << ADEN);									// Enable ADC
-	
+	ADMUX |= (1 << REFS0);
 }
 
 

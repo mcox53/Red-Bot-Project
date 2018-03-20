@@ -18,6 +18,7 @@
 #include "uart.h"
 #include "redbot.h"
 
+volatile uint8_t line_channel;
 volatile uint8_t fifty_ms_delay_count;
 uint16_t timer_period = 6249;						// Timer Period for 50ms timer
 
@@ -36,13 +37,25 @@ void initialize_all(void){
 	// ADC INITS FOR PRESCALER/ENABLE ONLY
 	// CONVERSION HANDLED ELSEWHERE
 	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
-	ADCSRA |= (1 << ADEN);									// Enable ADC
+	ADCSRA |= (1 << ADEN) | (1 << ADIE);					// Enable ADC and Interrupts									// Enable ADC
+	ADMUX |= (1 << REFS0);									// Change Reference voltage to AVcc with external cap
 	
-	// Program timer counter that counts every 50ms
+	// Program timer that counts every 50ms
 	OCR1A = timer_period;
 	TCCR1B |= (1 << CS11) | (1 << CS10);					// 64 prescaler
 	TCCR1B |= (1 << WGM12);									// CTC Mode
 	TIMSK1 |= (1 << OCIE1A);								// Timer Match A Interrupt
+}
+
+void pwm_timer_init(void){
+	
+	// Timer 0 PWM for Left & Right Motor
+	TCCR0A |= (1 << COM0A1);								// Clear OC0A on Compare Match, set OC0A at BOTTOM
+	TCCR0A |= (1 << COM0B1);								// Clear OC0B on Compare Match, ser OC0B at BOTTOM
+	TCCR0A |= (1 << WGM01) | (1 << WGM00);					// Fast PWM OCRA is TOP
+	TCCR0B |= (1 << CS02);									// CHANGE THIS - Clock Prescaler
+	TIMSK0 |= (1 << OCIE0A) | (1 << OCIE0B);				// Set Compare Match Interrupts for OC0A and OC0B
+	
 }
 
 ISR(TIMER1_COMPA_vect){

@@ -8,13 +8,13 @@ uint16_t READ_LINE_SENSOR(uint8_t line_channel){
 	switch(line_channel)
 	{
 		case LINE_LEFT_IN:
-			ADMUX &= ~(1 << MUX3) | ~(1 << MUX2) | ~(1 << MUX1) | ~(1 << MUX0);
+			ADMUX &= LINE_LEFT_MUX
 			break;
 		case LINE_RIGHT_IN:
-			ADMUX |= (1 << MUX0);
+			ADMUX |= LINE_LEFT_MUX
 			break;
 		case LINE_CENTER_IN:
-			ADMUX |= (1 << MUX2) | (1 << MUX1);
+			ADMUX |= LINE_CENTER_MUX;
 		default:
 			break;
 	}
@@ -40,24 +40,19 @@ uint16_t SET_IR_BACKGROUND_LEVEL(void){
 	return(average);
 }
 
-void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel){
-	
-	TCCR0A |= (1 << WGM01);					// CTC Mode
-	
-	// DO THE MATH FOR SPEED AND SET THIS
-	TCCR0B |= (1 << CS01) | (1 << CS00);
+
+
+void SET_PWM_OUTPUT(uint8_t pwm_duty_cycle, uint8_t channel){
 	
 	switch (channel)
 	{
 		case MOTOR_LEFT_PWM:
 			DDRD |= (1 << DDD5);			// Set PIND5 as Output
-			OCR0A = pwm_time_period;		// Set Compare register for desired frequency
-			TCCR0A |= (1 << COM0B0);		// Toggle OC0B (PIND5) on Compare Match
+			OCR0B = pwm_duty_cycle;			// Set Compare register for desired duty cycle
 			break;
 		case MOTOR_RIGHT_PWM:
 			DDRD |= (1 << DDD6);			// Set PIND6 as Output
-			OCR0A = pwm_time_period;		// Set Compare registers for desired frequency
-			TCCR0A |= (1 << COM0A0);		// Toggle OC0A (PIND6) on Compare Match
+			OCR0A = pwm_duty_cycle;			// Set Compare registers for desired duty cycle
 			break;
 		default:
 			break;	

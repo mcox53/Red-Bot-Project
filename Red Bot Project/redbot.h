@@ -28,6 +28,10 @@
 #define LINE_LEFT_IN			0
 #define LINE_RIGHT_IN			1
 
+#define LINE_CENTER_MUX			(1 << MUX1) | (1 << MUX2)
+#define LINE_LEFT_MUX			~(1 << MUX3) | ~(1 << MUX2) | ~(1 << MUX1) | ~(1 << MUX0)
+#define LINE_RIGHT_MUX			(1 << MUX0)
+
 
 // Function will read IR sensor depending on channel argument
 uint16_t READ_LINE_SENSOR(uint8_t line_channel);
@@ -42,8 +46,10 @@ uint16_t SET_IR_DETECT_LEVEL(void);
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
 
-// Primitive function to set PWM output (speed) for a specific channel
-void SET_PWM_OUTPUT(uint16_t pwm_time_period, uint8_t channel);
+// Primitive function to set duty cycle for motors
+// Function Uses Timer 0 which is connected to Motor PWM Pins
+// Frequency is defaulted to TOP Value with prescaler and duty cycle can vary 0-255
+void SET_PWM_OUTPUT(uint8_t pwm_duty_cycle, uint8_t channel);
 
 //Set the left motor to move forward. Speed is set separately
 void LEFT_MOTOR_FWD(void);
