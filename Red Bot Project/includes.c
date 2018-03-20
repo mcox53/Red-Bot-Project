@@ -9,6 +9,7 @@
 #include "redbot.h"
 
 void initialize_all(void){
+	sei();
 	// Configure Port D and B as outputs
 	DDRD |= (1 << MOTOR_LEFT_PWM) | (1 << MOTOR_LEFT_CONTROL1) | (1 << MOTOR_LEFT_CONTROL2);
 	DDRB |= (1 << MOTOR_RIGHT_PWM) | (1 << MOTOR_RIGHT_CONTROL1);

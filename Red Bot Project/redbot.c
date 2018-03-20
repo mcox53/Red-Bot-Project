@@ -72,7 +72,7 @@ void pwm_timer_init(void){
 	// Timer 0 PWM for Left & Right Motor
 	TCCR0A |= (1 << COM0A1);								// Clear OC0A on Compare Match, set OC0A at BOTTOM
 	TCCR0A |= (1 << COM0B1);								// Clear OC0B on Compare Match, ser OC0B at BOTTOM
-	TCCR0A |= (1 << WGM01) | (1 << WGM00);					// Fast PWM OCRA is TOP
+	TCCR0A |= (1 << WGM01) | (1 << WGM00);					// Fast PWM TOP is default
 	TCCR0B |= (1 << CS02);									// CHANGE THIS - Clock Prescaler
 	TIMSK0 |= (1 << OCIE0A) | (1 << OCIE0B);				// Set Compare Match Interrupts for OC0A and OC0B
 }
