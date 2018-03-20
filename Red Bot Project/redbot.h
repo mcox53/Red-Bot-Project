@@ -42,6 +42,12 @@ uint16_t SET_IR_BACKGROUND_LEVEL(void);
 // Function will read the center line sensor and set a detection level for the tape
 uint16_t SET_IR_DETECT_LEVEL(void);
 
+// Function will initialize the PWM motor timers after they have been disabled
+void pwm_timer_init(void);
+
+// Function will disable the PWM motor timers by disconecting the output pins
+void pwm_timer_stop(void);
+
 // Below are low level motor control function definitions
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
