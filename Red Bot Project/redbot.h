@@ -23,8 +23,8 @@
 #define WHEELSPEED_LEFT			PINC3
 
 #define LINE_CENTER_IN			6
-#define LINE_LEFT_IN			4
-#define LINE_RIGHT_IN			1
+#define LINE_LEFT_IN			1
+#define LINE_RIGHT_IN			4
 
 #endif
 
