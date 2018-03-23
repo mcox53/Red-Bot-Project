@@ -7,9 +7,27 @@
  *
  */
 
+#ifndef redbot_h
+#define redbot_h
+
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#define MOTOR_LEFT_CONTROL1		PIND2
+#define MOTOR_LEFT_CONTROL2		PIND4
+#define MOTOR_LEFT_PWM			PIND5
+#define MOTOR_RIGHT_CONTROL1	PIND7
+#define MOTOR_RIGHT_CONTROL2	PINB0
+#define MOTOR_RIGHT_PWM			PIND6
+#define WHEELSPEED_RIGHT		PINC2
+#define WHEELSPEED_LEFT			PINC3
+
+#define LINE_CENTER_IN			6
+#define LINE_LEFT_IN			4
+#define LINE_RIGHT_IN			1
+
+#endif
+
 
 
 /*

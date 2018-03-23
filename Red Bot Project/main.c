@@ -5,57 +5,8 @@
  * Author : Matthew Cox / Pawel Bezubik
  */ 
 
-#define F_CPU 16000000UL
-
-#include <avr/io.h>
-#include <avr/pgmspace.h>
-#include <inttypes.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "uart.h"
-//#include "redbot.h"
-
-volatile uint8_t line_channel;
-volatile uint8_t program_counter_one = 0;
-volatile uint8_t program_counter_two = 0;
-
-volatile uint8_t new_left_duty_cycle;
-volatile uint8_t new_right_duty_cycle;
-
-volatile uint16_t left_line;
-volatile uint16_t center_line;
-volatile uint16_t right_line;
-volatile uint8_t duty_cycle = 150;
-
-#define SPEED_RAMP		25
-#define AVOIDANCE_DEC	50
-#define LINETHRESHOLD	700							// Not Set Will Change
-
-#define MOTOR_LEFT_CONTROL1		PIND2
-#define MOTOR_LEFT_CONTROL2		PIND4
-#define MOTOR_LEFT_PWM			PIND5
-#define MOTOR_RIGHT_CONTROL1	PIND7
-#define MOTOR_RIGHT_CONTROL2	PINB0
-#define MOTOR_RIGHT_PWM			PIND6
-#define WHEELSPEED_RIGHT		PINC2
-#define WHEELSPEED_LEFT			PINC3
-
-#define LINE_CENTER_IN			6
-#define LINE_LEFT_IN			0
-#define LINE_RIGHT_IN			1
-
-const uint16_t program_timer_period = 6249;			// Timer Period for 50ms timer
-const uint8_t MOTOR_TIME_PERIOD = 255;				// This is the max value for Timer 0
-uint8_t LAST_STATE;
-
-// UART stream for testing
-FILE uart_stream = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
-char UART_BUFFER[50];
-
-volatile uint16_t Ain;
+#include "redbot.h"
+#include "includes.h"
 
 void initialize_all(void){
 	sei();
@@ -69,7 +20,7 @@ void initialize_all(void){
 	
 	// ADC Initializations
 	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);	// 128 prescaler
-	ADCSRA |= (1 << ADEN);									// Enable ADC and									// Enable ADC
+	ADCSRA |= (1 << ADEN);									// Enable ADC and ADC Conversion Complete Interrupt
 	ADMUX |= (1 << REFS0);									// Change Reference voltage to AVcc with external cap
 	
 	// Program timer that counts every 50ms
@@ -97,44 +48,6 @@ void start_ADC_and_wait(void){
 	while((ADCSRA & (1 << ADSC)));
 }
 
-uint16_t READ_LINE_SENSOR(uint8_t line_channel){
-	uint16_t LINE_SENSOR_OUT_RAW;
-	
-	// ADMUX Selection for IR Line Sensor
-	switch(line_channel)
-	{
-		case LINE_LEFT_IN:
-		ADMUX = LINE_LEFT_IN;
-		break;
-		case LINE_RIGHT_IN:
-		ADMUX |= LINE_RIGHT_IN;
-		break;
-		case LINE_CENTER_IN:
-		ADMUX |= LINE_CENTER_IN;
-		default:
-		break;
-	}
-	// Start ADC Conversion and wait until complete
-	ADCSRA |= (1 << ADSC);
-	while((ADCSRA & (1 << ADSC)));
-	
-	// Will Decide whether to output something different based on sensor data
-	LINE_SENSOR_OUT_RAW = (ADCH << 8) | ADCL;
-	return(LINE_SENSOR_OUT_RAW);
-}
-
-uint16_t SET_IR_DETECT_LEVEL(void){
-	uint16_t CENTER_IR_LEVEL = READ_LINE_SENSOR(LINE_CENTER_IN);
-	return(CENTER_IR_LEVEL);
-}
-
-uint16_t SET_IR_BACKGROUND_LEVEL(void){
-	uint16_t LEFT_IR_LEVEL = READ_LINE_SENSOR(LINE_LEFT_IN);
-	uint16_t RIGHT_IR_LEVEL = READ_LINE_SENSOR(LINE_RIGHT_IN);
-	
-	uint16_t average = (LEFT_IR_LEVEL + RIGHT_IR_LEVEL) / 2;
-	return(average);
-}
 
 void pwm_timer_init(void){
 	
@@ -214,26 +127,41 @@ void SET_PWM_OUTPUT(uint8_t pwm_duty_cycle, uint8_t channel){
 	}
 }
 
+void READ_LINE_SENSOR(void){
+	
+	ADMUX = LINE_LEFT_IN;
+	ADMUX |= (1 << REFS0);
+	
+	start_ADC_and_wait();
+	left_line = (ADCL);
+	left_line |= (ADCH << 8);
+	
+	ADMUX = LINE_CENTER_IN;
+	ADMUX |= (1 << REFS0);
+	
+	start_ADC_and_wait();
+	center_line = (ADCL);
+	center_line |= (ADCH << 8);
+
+	ADMUX = LINE_RIGHT_IN;
+	ADMUX |= (1 << REFS0);
+	
+	start_ADC_and_wait();
+	right_line = (ADCL);
+	right_line |= (ADCH << 8);
+}
+
+
 int main(void)
 {
     initialize_all();
     while(1){
 		
-		ADMUX = LINE_LEFT_IN;
-		ADMUX |= (1 << REFS0);
-		start_ADC_and_wait();
-		Ain = (ADCL);
-		Ain |= (ADCH << 8);
+		READ_LINE_SENSOR();
 		
-		fprintf(stdout, "Left: %d\n", Ain);
-		
-		ADMUX = LINE_CENTER_IN;
-		ADMUX |= (1 << REFS0);
-		start_ADC_and_wait();
-		Ain = (ADCL);
-		Ain |= (ADCH << 8);
-		
-		fprintf(stdout, "Center: %d\n", Ain);
+		fprintf(stdout, "Left: %d\n", left_line);
+		fprintf(stdout, "Right: %d\n", right_line);
+		fprintf(stdout, "Center: %d\n", center_line);
 		
 		_delay_ms(100);
 		

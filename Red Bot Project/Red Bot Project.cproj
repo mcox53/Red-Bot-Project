@@ -120,10 +120,16 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="includes.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="includes.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="redbot.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="redbot.h">
