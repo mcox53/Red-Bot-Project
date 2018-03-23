@@ -12,26 +12,7 @@
 #include <avr/interrupt.h>
 
 
-//Accel SDA					PINC4
-//Accel SCL					PINC5
-
-#define MOTOR_LEFT_CONTROL1		PIND2
-#define MOTOR_LEFT_CONTROL2		PIND4
-#define MOTOR_LEFT_PWM			PIND5
-#define MOTOR_RIGHT_CONTROL1	PIND7
-#define MOTOR_RIGHT_CONTROL2	PINB0
-#define MOTOR_RIGHT_PWM			PIND6
-#define WHEELSPEED_RIGHT		PINC2
-#define WHEELSPEED_LEFT			PINC3
-
-#define LINE_CENTER_IN			6
-#define LINE_LEFT_IN			0
-#define LINE_RIGHT_IN			1
-
-#define LINE_CENTER_MUX			(1 << MUX1) | (1 << MUX2)
-#define LINE_LEFT_MUX			~(1 << MUX3) | ~(1 << MUX2) | ~(1 << MUX1) | ~(1 << MUX0)
-#define LINE_RIGHT_MUX			(1 << MUX0)
-
+/*
 
 // Function will read IR sensor depending on channel argument
 uint16_t READ_LINE_SENSOR(uint8_t line_channel);
@@ -45,17 +26,12 @@ uint16_t SET_IR_DETECT_LEVEL(void);
 // Function will initialize the PWM motor timers after they have been disabled
 void pwm_timer_init(void);
 
-// Function will disable the PWM motor timers by disconecting the output pins
+// Function will disable the PWM motor timers by disconnecting the output pins
 void pwm_timer_stop(void);
 
 // Below are low level motor control function definitions
 // These define the basic movements of the motors
 // We will use these basic functions to build more complex movements
-
-// Primitive function to set duty cycle for motors
-// Function Uses Timer 0 which is connected to Motor PWM Pins
-// Frequency is defaulted to TOP Value with prescaler and duty cycle can vary 0-255
-void SET_PWM_OUTPUT(uint8_t pwm_duty_cycle, uint8_t channel);
 
 //Set the left motor to move forward. Speed is set separately
 void LEFT_MOTOR_FWD(void);
@@ -81,5 +57,4 @@ void LEFT_MOTOR_STOP(void);
 //Set the right motor to stop
 void  RIGHT_MOTOR_STOP(void);
 
-
-
+*/
