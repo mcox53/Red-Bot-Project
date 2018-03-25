@@ -29,10 +29,7 @@ volatile uint16_t left_line;
 volatile uint16_t center_line;
 volatile uint16_t right_line;
 volatile uint8_t duty_cycle = 200;
-
-#define SPEED_RAMP		25
-#define AVOIDANCE_DEC	50
-#define LINETHRESHOLD	700							// Not Set Will Change
+volatile int8_t direction = -1;					// -1 when going left, 1 when going right
 
 const uint16_t program_timer_period = 6249;			// Timer Period for 50ms timer
 const uint8_t MOTOR_TIME_PERIOD = 255;				// This is the max value for Timer 0
@@ -42,7 +39,63 @@ uint8_t LAST_STATE;
 FILE uart_stream = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
 char UART_BUFFER[50];
 
-volatile uint16_t Ain;
+// PID variables
+volatile float error = 0;
+volatile float last_error = 0;
+volatile float derivative = 0;
+volatile float integral = 0;
+volatile float setpoint = 700;						// Calibrated value for edge of tape
+volatile float PIDOutput = 0;
+volatile float Kp = 0.1;
+volatile float Ki = 0;
+volatile float Kd = 0;
+volatile float PID_to_duty_left = 0;
+volatile float PID_to_duty_right = 0;
+
+#define LOW_ERROR_THRESHOLD		10					// 0 - 90 value representing low error range
+#define HIGH_ERROR_THRESHOLD	25					// 0 - 90 value representing high error range
+#define TURN_SPEED				50					// How much the motor will turn
+#define SPEED_INCR				.1					// Incrementing the speed when on the right path
+#define SPEED_DECR				.25					// Decrementing the speed when off the correct path
+
+volatile float duty_multiplier = TURN_SPEED;
+
+void PIDCalculateOutput(float setpoint){
+	error = setpoint - center_line;
+	
+	integral += error;
+	
+	derivative = error - last_error;
+	
+	PIDOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+	
+	last_error = error;
+	
+	if(PIDOutput > 90){
+		PIDOutput = 90;
+	}else if(PIDOutput < -90){
+		PIDOutput = -90;
+	}
+	
+}
+
+void PIDspeedControl(float PIDOut){
+	
+	if(abs(PIDOut) < LOW_ERROR_THRESHOLD){
+		if(duty_multiplier > 0){
+			duty_multiplier -= SPEED_INCR;
+		}
+	} else if(abs(PIDOut) < HIGH_ERROR_THRESHOLD){
+		if(duty_multiplier < TURN_SPEED){
+			duty_multiplier += SPEED_DECR;
+		}
+	} else {
+		duty_multiplier = TURN_SPEED;
+	}
+	
+	PID_to_duty_left = (int)((direction * -1 * (PIDOut / 90) * duty_multiplier) + (100 - duty_multiplier));
+	PID_to_duty_right = (int)((direction * (PIDOut / 90) * duty_multiplier) + (100 - duty_multiplier));
+}
 
 void initialize_all(void){
 	sei();
@@ -68,7 +121,6 @@ void initialize_all(void){
 
 ISR(TIMER1_COMPA_vect){
 	program_counter_one++;
-	program_counter_two++;
 }
 
 ISR(TIMER0_COMPA_vect){
@@ -82,69 +134,6 @@ ISR(TIMER0_COMPB_vect){
 void start_ADC_and_wait(void){
 	ADCSRA |= (1 << ADSC);
 	while((ADCSRA & (1 << ADSC)));
-}
-
-
-void pwm_timer_init(void){
-	
-	// Timer 0 PWM for Left & Right Motor
-	TCCR0A |= (1 << COM0A1);								// Clear OC0A on Compare Match, set OC0A at BOTTOM
-	TCCR0A |= (1 << COM0B1);								// Clear OC0B on Compare Match, ser OC0B at BOTTOM
-	TCCR0A |= (1 << WGM01) | (1 << WGM00);					// Fast PWM TOP is default
-	TCCR0B |= (1 << CS02);									// CHANGE THIS - Clock Prescaler
-	TIMSK0 |= (1 << OCIE0A) | (1 << OCIE0B);				// Set Compare Match Interrupts for OC0A and OC0B
-}
-
-void pwm_timer_stop(void){
-	TCCR0A &= ~(1 << COM0A1) | ~(1 << COM0A0);		// Disables PWM output for timer and enables normal port operation
-}
-
-void RIGHT_MOTOR_FWD(void){
-	PORTD |= (1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
-	PORTB &= ~(1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
-}
-
-void LEFT_MOTOR_FWD(void){
-	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
-	PORTD &= ~(1 << MOTOR_LEFT_CONTROL2);			// Set IN2 To Low according to motor driver datasheet
-}
-
-void RIGHT_MOTOR_REV(void){
-	PORTD &= ~(1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
-	PORTB |= (1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
-}
-
-void LEFT_MOTOR_REV(void){
-	PORTD &= ~(1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
-	PORTB |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
-}
-
-void RIGHT_MOTOR_STOP(void){
-	PORTD &= ~(1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
-	PORTB &= ~(1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
-	pwm_timer_stop();
-	PORTD |= (1 << PIND6);							// PWM Out required to be High for Motor stop
-}
-
-void LEFT_MOTOR_STOP(void){
-	PORTD &= ~(1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to Low according to motor driver datasheet
-	PORTD &= ~(1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to Low according to motor driver datasheet
-	pwm_timer_stop();
-	PORTD |= (1 << PIND6);							// PWM Out required to be High for Motor stops
-}
-
-void RIGHT_MOTOR_BRAKE(void){
-	PORTD |= (1 << MOTOR_RIGHT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
-	PORTB |= (1 << MOTOR_RIGHT_CONTROL2);			// Set IN2 to High according to motor driver data sheet
-	pwm_timer_stop();
-	PORTD |= (1 << PIND6);							// Set PWM output pin to be high. PWM out is a don't care state for short brake
-}
-
-void LEFT_MOTOR_BRAKE(void){
-	PORTD |= (1 << MOTOR_LEFT_CONTROL1);			// Set IN1 to High according to motor driver datasheet
-	PORTD |= (1 << MOTOR_LEFT_CONTROL2);			// Set IN2 to High according to motor driver datasheet
-	pwm_timer_stop();
-	PORTD |= (1 << PIND5);							// Set PWM output pin to be high. PWM out is a don't care state for short brake
 }
 
 void SET_PWM_OUTPUT(uint8_t pwm_duty_cycle, uint8_t channel){
@@ -192,22 +181,27 @@ int main(void)
 {
     initialize_all();
 	pwm_timer_init();
+	RIGHT_MOTOR_FWD();
+	LEFT_MOTOR_FWD();
+	
     while(1){
 		
-		RIGHT_MOTOR_FWD();
-		LEFT_MOTOR_FWD();
-		SET_PWM_OUTPUT(duty_cycle, MOTOR_LEFT_PWM);
-		SET_PWM_OUTPUT(duty_cycle, MOTOR_RIGHT_PWM);
-		
-		
-		READ_LINE_SENSOR();
-		
-		fprintf(stdout, "Left: %d\n", left_line);
-		fprintf(stdout, "Right: %d\n", right_line);
-		fprintf(stdout, "Center: %d\n", center_line);
-		
-		_delay_ms(100);
-		
+		if (program_counter_one >= 1){
+			READ_LINE_SENSOR();
+			if(direction > 0 && left_line > 700){
+				direction *= -1;
+			}
+			
+			if(direction < 0 && right_line > 700){
+				direction *= -1;
+			}
+			
+			PIDCalculateOutput(setpoint);
+			PIDspeedControl(PIDOutput);
+			SET_PWM_OUTPUT(PID_to_duty_left, MOTOR_LEFT_PWM);
+			SET_PWM_OUTPUT(PID_to_duty_right, MOTOR_RIGHT_PWM);
+			
+		}
     }
 	return(0);
 }

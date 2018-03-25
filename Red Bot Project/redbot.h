@@ -26,30 +26,11 @@
 #define LINE_LEFT_IN			1
 #define LINE_RIGHT_IN			4
 
-#endif
-
-
-
-/*
-
-// Function will read IR sensor depending on channel argument
-uint16_t READ_LINE_SENSOR(uint8_t line_channel);
-
-// Function will read all three line sensors and choose a background level
-uint16_t SET_IR_BACKGROUND_LEVEL(void);
-
-// Function will read the center line sensor and set a detection level for the tape
-uint16_t SET_IR_DETECT_LEVEL(void);
-
 // Function will initialize the PWM motor timers after they have been disabled
 void pwm_timer_init(void);
 
 // Function will disable the PWM motor timers by disconnecting the output pins
 void pwm_timer_stop(void);
-
-// Below are low level motor control function definitions
-// These define the basic movements of the motors
-// We will use these basic functions to build more complex movements
 
 //Set the left motor to move forward. Speed is set separately
 void LEFT_MOTOR_FWD(void);
@@ -75,4 +56,5 @@ void LEFT_MOTOR_STOP(void);
 //Set the right motor to stop
 void  RIGHT_MOTOR_STOP(void);
 
-*/
+#endif
+
