@@ -44,7 +44,7 @@ volatile float error = 0;
 volatile float last_error = 0;
 volatile float derivative = 0;
 volatile float integral = 0;
-volatile float setpoint = 680;						// Calibrated value for tape
+volatile float setpoint = 750;						// Calibrated value for tape
 volatile float PIDOutput = 0;
 volatile float Kp = 0.09;
 volatile float Ki = 0;
@@ -144,11 +144,11 @@ void SET_PWM_OUTPUT(float pwm_duty_cycle, uint8_t channel){
 	{
 		case MOTOR_LEFT_PWM:
 		DDRD |= (1 << DDD5);			// Set PIND5 as Output
-		new_left_duty_cycle = (int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare register for desired duty cycle
+		new_left_duty_cycle = pwm_duty_cycle;	//(int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare register for desired duty cycle
 		break;
 		case MOTOR_RIGHT_PWM:
 		DDRD |= (1 << DDD6);			// Set PIND6 as Output
-		new_right_duty_cycle = (int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare registers for desired duty cycle
+		new_right_duty_cycle = pwm_duty_cycle;		//(int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare registers for desired duty cycle
 		break;
 		default:
 		break;
@@ -190,7 +190,7 @@ int main(void)
 	SET_PWM_OUTPUT(150, MOTOR_LEFT_PWM);
 	
     while(1){
-		
+		/*
 		if (program_counter_one >= 1){
 			READ_LINE_SENSOR();
 			if(direction > 0 && left_line > 800){
@@ -206,39 +206,45 @@ int main(void)
 			SET_PWM_OUTPUT(PID_to_duty_left, MOTOR_LEFT_PWM);
 			SET_PWM_OUTPUT(PID_to_duty_right, MOTOR_RIGHT_PWM);
 		
-		}
-	/*
+		}*/
+	
 		if (program_counter_one >= 1)
 		{
 			READ_LINE_SENSOR();
 			if (center_line > setpoint && left_line < setpoint && right_line < setpoint){
 				RIGHT_MOTOR_FWD();
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(200, MOTOR_LEFT_PWM);
-				SET_PWM_OUTPUT(200, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(150, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(150, MOTOR_RIGHT_PWM);
 			} else if (right_line > setpoint && left_line < setpoint && center_line < setpoint){
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(200, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(50, MOTOR_RIGHT_PWM);
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(150, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(140, MOTOR_LEFT_PWM);
 			}else if (left_line > setpoint && right_line < setpoint && center_line < setpoint){
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(200, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(50, MOTOR_LEFT_PWM);
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(150, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(140, MOTOR_RIGHT_PWM);
 			}else if (left_line > setpoint && center_line > setpoint && right_line < setpoint){
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(200, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(90, MOTOR_LEFT_PWM);
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(180, MOTOR_RIGHT_PWM);
-			}else if (left_line > setpoint && center_line > setpoint && right_line < setpoint){
+				SET_PWM_OUTPUT(120, MOTOR_RIGHT_PWM);
+			}else if (right_line > setpoint && center_line > setpoint && left_line < setpoint){
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(200, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(90, MOTOR_RIGHT_PWM);
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(180, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(120, MOTOR_LEFT_PWM);
+			}else{
+				RIGHT_MOTOR_FWD();
+				SET_PWM_OUTPUT(125, MOTOR_RIGHT_PWM);
+				LEFT_MOTOR_FWD();
+				SET_PWM_OUTPUT(125, MOTOR_LEFT_PWM);
+			}
 		}
-		*/
 	}
+	
 	return(0);
 }
 
