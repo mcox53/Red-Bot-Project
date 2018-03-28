@@ -18,50 +18,52 @@
 #include "uart.h"
 #include "redbot.h"
 
-volatile uint8_t line_channel;
-volatile uint8_t program_counter_one = 0;
-volatile uint8_t program_counter_two = 0;
+uint8_t line_channel;								// Function variable for selecting line channel
+volatile uint8_t program_counter_one = 0;			// Program Counter Variable
+volatile uint8_t new_left_duty_cycle;				// Modified duty cycle queued for timer registers
+volatile uint8_t new_right_duty_cycle;				// Modified duty cycle queued for timer registers
 
-volatile uint8_t new_left_duty_cycle;
-volatile uint8_t new_right_duty_cycle;
-
-volatile uint16_t left_line;
-volatile uint16_t center_line;
-volatile uint16_t right_line;
-volatile uint8_t duty_cycle = 150;
-volatile int8_t direction = 1;					// -1 when going left, 1 when going right
+uint16_t left_line;									// ADC read variable for the left line
+uint16_t center_line;								// ADC read variable for the center line
+uint16_t right_line;								// ADC read variable for the right line
+uint8_t duty_cycle = 150;							// Initial duty cycle
+int8_t direction = 1;								// Direction toggle for PID controller
+uint8_t PID_FLAG = 0;
 
 const uint16_t program_timer_period = 6249;			// Timer Period for 50ms timer
-const uint8_t MOTOR_TIME_PERIOD = 255;				// This is the max value for Timer 0
-uint8_t LAST_STATE;
+const uint8_t MOTOR_TIME_PERIOD = 255;				// This is the max value for Timer 0. It is also the max duty cycle value
 
 // UART stream for testing
 FILE uart_stream = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
 char UART_BUFFER[50];
 
 // PID variables
-volatile float error = 0;
-volatile float last_error = 0;
-volatile float derivative = 0;
-volatile float integral = 0;
-volatile float setpoint = 700;						// Calibrated value for tape
-volatile float PIDOutput = 0;
-volatile float Kp = 0.09;
-volatile float Ki = 0;
-volatile float Kd = 0;
-volatile float PID_to_duty_left = 0;
-volatile float PID_to_duty_right = 0;
-
-#define LOW_ERROR_THRESHOLD		50					// 
-#define HIGH_ERROR_THRESHOLD	150					// 
+#define LOW_ERROR_THRESHOLD		50					// Error Threshold
+#define HIGH_ERROR_THRESHOLD	150					// Error Threshold
 #define TURN_SPEED				80					// How much the motor will turn
 #define SPEED_INCR				.05					// Incrementing the speed when on the right path
 #define SPEED_DECR				.1					// Decrementing the speed when off the correct path
 
-#define	SPEED_RAMP				.3
-#define SPEED_SLOW				.3
+float error = 0;
+float last_error = 0;
+float derivative = 0;
+float integral = 0;
+float setpoint = 700;
+float PIDOutput = 0;
+float Kp = 0.09;
+float Ki = 0;
+float Kd = 0.02;
+float PID_to_duty_left = 0;
+float PID_to_duty_right = 0;
+float duty_multiplier = TURN_SPEED;
 
-volatile float duty_multiplier = TURN_SPEED;
+// Other
+#define STRAIGHT_LINE_DUTY		255
+#define HARD_TURN_LOW			80
+#define HARD_TURN_HIGH			170
+#define SLIGHT_TURN_LOW			100
+#define SLIGHT_TURN_HIGH		180
+
 
 void PIDCalculateOutput(float setpoint){
 	error = setpoint - center_line;
@@ -143,12 +145,12 @@ void SET_PWM_OUTPUT(float pwm_duty_cycle, uint8_t channel){
 	switch (channel)
 	{
 		case MOTOR_LEFT_PWM:
-		DDRD |= (1 << DDD5);			// Set PIND5 as Output
-		new_left_duty_cycle = pwm_duty_cycle;	//(int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare register for desired duty cycle
+		DDRD |= (1 << DDD5);							// Set PIND5 as Output
+		new_left_duty_cycle = pwm_duty_cycle;			// Set Compare register for desired duty cycle
 		break;
 		case MOTOR_RIGHT_PWM:
-		DDRD |= (1 << DDD6);			// Set PIND6 as Output
-		new_right_duty_cycle = pwm_duty_cycle;		//(int)((float)(255 * (pwm_duty_cycle/100)));			// Set Compare registers for desired duty cycle
+		DDRD |= (1 << DDD6);							// Set PIND6 as Output
+		new_right_duty_cycle = pwm_duty_cycle;			// Set Compare registers for desired duty cycle
 		break;
 		default:
 		break;
@@ -186,65 +188,63 @@ int main(void)
 	pwm_timer_init();
 	RIGHT_MOTOR_FWD();
 	LEFT_MOTOR_FWD();
-	SET_PWM_OUTPUT(150, MOTOR_RIGHT_PWM);
-	SET_PWM_OUTPUT(150, MOTOR_LEFT_PWM);
+	SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_RIGHT_PWM);
+	SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_LEFT_PWM);
 	
     while(1){
-		/*
-		if (program_counter_one >= 1){
-			READ_LINE_SENSOR();
-			if(direction > 0 && left_line > 800){
-				direction *= -1;
-			}
+		if (PID_FLAG){
+			if (program_counter_one >= 1){
+				READ_LINE_SENSOR();
+				if(direction > 0 && left_line > 800){
+					direction *= -1;
+				}
 			
-			if(direction < 0 && right_line > 800){
-				direction *= -1;
-			}
+				if(direction < 0 && right_line > 800){
+					direction *= -1;
+				}
 			
-			PIDCalculateOutput(setpoint);
-			PIDspeedControl(PIDOutput);
-			SET_PWM_OUTPUT(PID_to_duty_left, MOTOR_LEFT_PWM);
-			SET_PWM_OUTPUT(PID_to_duty_right, MOTOR_RIGHT_PWM);
-		
-		}*/
-	
-		if (program_counter_one >= 1)
-		{
-			READ_LINE_SENSOR();
-			if (center_line > setpoint && left_line < setpoint && right_line < setpoint){
-				RIGHT_MOTOR_FWD();
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(255, MOTOR_LEFT_PWM); //240
-				SET_PWM_OUTPUT(255, MOTOR_RIGHT_PWM);
-			} else if (right_line > setpoint && left_line < setpoint && center_line < setpoint){
-				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(80, MOTOR_RIGHT_PWM);
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(170, MOTOR_LEFT_PWM);
-			}else if (left_line > setpoint && right_line < setpoint && center_line < setpoint){
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(80, MOTOR_LEFT_PWM);
-				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(170, MOTOR_RIGHT_PWM);
-			}else if (left_line > setpoint && center_line > setpoint && right_line < setpoint){
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(100, MOTOR_LEFT_PWM);
-				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(180, MOTOR_RIGHT_PWM); 
-			}else if (right_line > setpoint && center_line > setpoint && left_line < setpoint){
-				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(100, MOTOR_RIGHT_PWM);
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(180, MOTOR_LEFT_PWM);  
-			}else{
-				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(175, MOTOR_RIGHT_PWM);
-				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(175, MOTOR_LEFT_PWM);
+				PIDCalculateOutput(setpoint);
+				PIDspeedControl(PIDOutput);
+				SET_PWM_OUTPUT(PID_to_duty_left, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(PID_to_duty_right, MOTOR_RIGHT_PWM);
+		}else{
+			if (program_counter_one >= 1){
+				READ_LINE_SENSOR();
+				if (center_line > setpoint && left_line < setpoint && right_line < setpoint){
+					RIGHT_MOTOR_FWD();
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_LEFT_PWM);
+					SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_RIGHT_PWM);
+				} else if (right_line > setpoint && left_line < setpoint && center_line < setpoint){
+					RIGHT_MOTOR_FWD();
+					SET_PWM_OUTPUT(HARD_TURN_LOW, MOTOR_RIGHT_PWM);
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(HARD_TURN_HIGH, MOTOR_LEFT_PWM);
+				}else if (left_line > setpoint && right_line < setpoint && center_line < setpoint){
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(HARD_TURN_LOW, MOTOR_LEFT_PWM);
+					RIGHT_MOTOR_FWD();
+					SET_PWM_OUTPUT(HARD_TURN_HIGH, MOTOR_RIGHT_PWM);
+				}else if (left_line > setpoint && center_line > setpoint && right_line < setpoint){
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(SLIGHT_TURN_LOW, MOTOR_LEFT_PWM);
+					RIGHT_MOTOR_FWD();
+					SET_PWM_OUTPUT(SLIGHT_TURN_HIGH, MOTOR_RIGHT_PWM); 
+				}else if (right_line > setpoint && center_line > setpoint && left_line < setpoint){
+					RIGHT_MOTOR_FWD();
+					SET_PWM_OUTPUT(SLIGHT_TURN_LOW, MOTOR_RIGHT_PWM);
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(SLIGHT_TURN_HIGH, MOTOR_LEFT_PWM);  
+				}else{
+					RIGHT_MOTOR_FWD();
+					SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_RIGHT_PWM);
+					LEFT_MOTOR_FWD();
+					SET_PWM_OUTPUT(STRAIGHT_LINE_DUTY, MOTOR_LEFT_PWM);
+				}
 			}
 		}
 	}
-	
+				}
 	return(0);
 }
 
