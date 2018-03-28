@@ -44,7 +44,7 @@ volatile float error = 0;
 volatile float last_error = 0;
 volatile float derivative = 0;
 volatile float integral = 0;
-volatile float setpoint = 750;						// Calibrated value for tape
+volatile float setpoint = 700;						// Calibrated value for tape
 volatile float PIDOutput = 0;
 volatile float Kp = 0.09;
 volatile float Ki = 0;
@@ -214,33 +214,33 @@ int main(void)
 			if (center_line > setpoint && left_line < setpoint && right_line < setpoint){
 				RIGHT_MOTOR_FWD();
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(150, MOTOR_LEFT_PWM);
-				SET_PWM_OUTPUT(150, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(255, MOTOR_LEFT_PWM); //240
+				SET_PWM_OUTPUT(255, MOTOR_RIGHT_PWM);
 			} else if (right_line > setpoint && left_line < setpoint && center_line < setpoint){
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(50, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(80, MOTOR_RIGHT_PWM);
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(140, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(170, MOTOR_LEFT_PWM);
 			}else if (left_line > setpoint && right_line < setpoint && center_line < setpoint){
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(50, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(80, MOTOR_LEFT_PWM);
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(140, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(170, MOTOR_RIGHT_PWM);
 			}else if (left_line > setpoint && center_line > setpoint && right_line < setpoint){
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(90, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(100, MOTOR_LEFT_PWM);
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(120, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(180, MOTOR_RIGHT_PWM); 
 			}else if (right_line > setpoint && center_line > setpoint && left_line < setpoint){
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(90, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(100, MOTOR_RIGHT_PWM);
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(120, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(180, MOTOR_LEFT_PWM);  
 			}else{
 				RIGHT_MOTOR_FWD();
-				SET_PWM_OUTPUT(125, MOTOR_RIGHT_PWM);
+				SET_PWM_OUTPUT(175, MOTOR_RIGHT_PWM);
 				LEFT_MOTOR_FWD();
-				SET_PWM_OUTPUT(125, MOTOR_LEFT_PWM);
+				SET_PWM_OUTPUT(175, MOTOR_LEFT_PWM);
 			}
 		}
 	}
